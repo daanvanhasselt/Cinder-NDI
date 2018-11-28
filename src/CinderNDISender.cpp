@@ -45,9 +45,9 @@ void CinderNDISender::sendSurface( ci::Surface& surface, long long timecode, boo
 	if( NDIlib_send_get_no_connections( mNdiSender, 0 ) ) {
 
 		NDIlib_metadata_frame_t metadata_desc;
-		if( NDIlib_send_capture( mNdiSender, &metadata_desc, 0 ) ) {
+		/*if( NDIlib_send_capture( mNdiSender, &metadata_desc, 0 ) ) {
 			CI_LOG_I( "Received meta-data : " << metadata_desc.p_data );
-		}
+		}*/
 
 		NDIlib_tally_t NDI_tally;
 		NDIlib_send_get_tally( mNdiSender, &NDI_tally, 0 );
