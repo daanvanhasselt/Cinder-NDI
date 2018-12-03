@@ -70,8 +70,16 @@ void CinderNDIReceiver::initConnection()
 	}
 }
 
+bool CinderNDIReceiver::getIsNewFrame()
+{
+	return mNewFrame;
+}
+
 void CinderNDIReceiver::update()
 {
+
+	mNewFrame = false;
+
 	// Check if we have at least one source
 	int no_sources = 0;
 	const NDIlib_source_t* p_sources = nullptr;
@@ -119,6 +127,7 @@ void CinderNDIReceiver::update()
 				mVideoTexture.first->setTopDown( true );
 				mVideoTexture.second = video_frame.timecode;
 				NDIlib_recv_free_video( mNdiReceiver, &video_frame );
+				mNewFrame = true;
 				break;
 			}
 

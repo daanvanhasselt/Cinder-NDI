@@ -19,6 +19,8 @@ class CinderNDIReceiver{
 		bool mNdiInitialized = false;
 		bool mReadyToReceive = false;
 		std::pair<ci::gl::Texture2dRef, long long> mVideoTexture;
+		bool mNewFrame = false;
+		bool getIsNewFrame();
 
 		std::pair<std::string, long long> mMetadata;
 		NDIlib_recv_instance_t mNdiReceiver;
