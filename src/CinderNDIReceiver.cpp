@@ -5,7 +5,7 @@
 #include "cinder/Surface.h"
 #include <Processing.NDI.Recv.h>
 
-CinderNDIReceiver::CinderNDIReceiver()
+CinderNDIReceiver::CinderNDIReceiver(int index)
 	: mNdiSources{ nullptr }
 {
 	if( ! NDIlib_is_supported_CPU() ) {
@@ -29,9 +29,24 @@ CinderNDIReceiver::CinderNDIReceiver()
 		mNdiSources = NDIlib_find_get_sources( mNdiFinder, &no_sources, 1000 );
 	}
 
-	initConnection("dummy");
+	currentIndex = index;
+	initConnection(currentIndex);
 
 	mNdiInitialized = true;
+}
+
+CinderNDIReceiver::CinderNDIReceiver(std::string senderName)
+{
+	if (senderName.empty()) {
+		CI_LOG_E("sender name cannot be blank!");
+	} else {
+		int index = getIndexForSender(senderName);
+		if (index == -1) {
+			CI_LOG_E("sender name not found!");
+		} else {
+			CinderNDIReceiver(index);
+		}
+	}
 }
 
 CinderNDIReceiver::~CinderNDIReceiver()
@@ -47,16 +62,31 @@ CinderNDIReceiver::~CinderNDIReceiver()
 	mNdiInitialized = false;
 }
 
-void setup(std::string streamName) {
 
+int CinderNDIReceiver::getIndexForSender(std::string name) {
+	if (name.empty()) return -1;
+
+	if (NDIsenderNames.size() > 0) {
+		for (int i = 0; i<(int)NDIsenderNames.size(); i++) {
+			if (name == NDIsenderNames.at(i)) {
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
-void CinderNDIReceiver::initConnection(std::string streamName)
+
+void CinderNDIReceiver::initConnection(int index)
 {
+	if (index != currentIndex) {
+		currentIndex = index;
+	}
 	if( mNdiSources ) {
+		
 		NDIlib_recv_create_t NDI_recv_create_desc = 
 		{
-			mNdiSources[0],
+			mNdiSources[index],
 			NDIlib_recv_color_format_e::NDIlib_recv_color_format_e_BGRX_BGRA,
 			NDIlib_recv_bandwidth_highest,
 			TRUE
@@ -65,7 +95,10 @@ void CinderNDIReceiver::initConnection(std::string streamName)
 		mNdiReceiver = NDIlib_recv_create2( &NDI_recv_create_desc );
 		if( ! mNdiReceiver ) {
 			CI_LOG_E( "Failed to create NDI receiver!" );
+		} else {
+			CI_LOG_I("Connected to sender at index #" << std::to_string(index) << " OK");
 		}
+
 
 		const NDIlib_tally_t tally_state = { true, false };
 		NDIlib_recv_set_tally( mNdiReceiver, &tally_state);
@@ -77,15 +110,18 @@ void CinderNDIReceiver::initConnection(std::string streamName)
 void CinderNDIReceiver::update()
 {
 	// Check if we have at least one source
-	int no_sources = 0;
+	int numberOfSources = 0;
 	const NDIlib_source_t* p_sources = nullptr;
-	mNdiSources = NDIlib_find_get_sources( mNdiFinder, &no_sources, 0 );
+	mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 0 );
 
-	if( ! no_sources ) {
+	if( ! numberOfSources ) {
 		mReadyToReceive = false;
 		// Connections might take a while.. Wait for 10secs..
-		while( ! no_sources ) {
-			mNdiSources = NDIlib_find_get_sources( mNdiFinder, &no_sources, 1000 );
+		for (int i = 0; i < numberOfSources; i++) {
+			mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 1000 );
+			if (mNdiSources[i].p_ndi_name && mNdiSources[i].p_ndi_name[0]) {
+				NDIsenderNames.push_back(mNdiSources[i].p_ndi_name);
+			}
 		}
 	}
 	else {
@@ -93,7 +129,7 @@ void CinderNDIReceiver::update()
 		// so we need to rebuild our receiver.
 		if( ! mReadyToReceive ) {
 			if( mNdiReceiver ) NDIlib_recv_destroy( mNdiReceiver );
-			initConnection("dummy");
+			initConnection(currentIndex);
 		}
 
 	}
@@ -147,6 +183,8 @@ void CinderNDIReceiver::update()
 		}
 	}
 }
+
+
 
 std::pair<std::string, long long> CinderNDIReceiver::getMetadata()
 {

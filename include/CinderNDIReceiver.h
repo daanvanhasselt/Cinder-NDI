@@ -7,17 +7,18 @@
 
 class CinderNDIReceiver{
 	public:
-		CinderNDIReceiver();
+		CinderNDIReceiver(int index = 0);
+		CinderNDIReceiver(std::string senderName);
 		~CinderNDIReceiver();
-
-		void setup(std::string streamName);
 
 		void update();
 		std::pair<std::string, long long> getMetadata();
 		std::pair<ci::gl::Texture2dRef, long long> getVideoTexture();
 	private:
-		void initConnection(std::string streamName);
-	private:
+		void initConnection(int index);
+
+		int getIndexForSender(std::string name);
+
 		bool mNdiInitialized = false;
 		bool mReadyToReceive = false;
 		std::pair<ci::gl::Texture2dRef, long long> mVideoTexture;
@@ -26,5 +27,8 @@ class CinderNDIReceiver{
 		NDIlib_recv_instance_t mNdiReceiver;
 		NDIlib_find_instance_t mNdiFinder;
 		const NDIlib_source_t* mNdiSources = nullptr; // Owned by NDI.
+
+		std::vector<std::string> NDIsenderNames;
+		int currentIndex;
 
 };
