@@ -7,9 +7,12 @@
 
 class CinderNDIReceiver{
 	public:
-		CinderNDIReceiver(int index = 0);
-		CinderNDIReceiver(std::string senderName);
+		CinderNDIReceiver();
 		~CinderNDIReceiver();
+
+		void setup(std::string preferredSender = "");
+
+		bool isReady();
 
 		void update();
 		std::pair<std::string, long long> getMetadata();
@@ -23,12 +26,12 @@ class CinderNDIReceiver{
 
 	private:
 		int findSources();
-		void initConnection(int index);
+		void initConnection(int index, bool waitForPreferredSender = false);
 
 		int getIndexForSender(std::string name);
 
-		bool mNdiInitialized = false;
-		bool mReadyToReceive = false;
+		bool mNdiInitialized;
+		bool mReady;
 		std::pair<ci::gl::Texture2dRef, long long> mVideoTexture;
 
 		std::pair<std::string, long long> mMetadata;
@@ -38,5 +41,6 @@ class CinderNDIReceiver{
 
 		std::vector<std::string> NDIsenderNames;
 		int currentIndex;
+		std::string preferredSenderName;
 
 };

@@ -30,10 +30,14 @@ BasicReceiverApp::BasicReceiverApp()
 void BasicReceiverApp::update()
 {
 	mReceiver.update();
-	int senderIndex = mReceiver.getCurrentSenderIndex();
-	int senderCount = mReceiver.getNumberOfSendersFound();
-	std::string senderName = mReceiver.getCurrentSenderName();
-	getWindow()->setTitle( "#" + std::to_string(senderIndex) + "/" + std::to_string(senderCount) + ": " + senderName + " @ " + std::to_string( (int) getAverageFps() ) + " FPS" );
+	if (mReceiver.isReady()) {
+		int senderIndex = mReceiver.getCurrentSenderIndex();
+		int senderCount = mReceiver.getNumberOfSendersFound();
+		std::string senderName = mReceiver.getCurrentSenderName();
+		getWindow()->setTitle("#" + std::to_string(senderIndex) + "/" + std::to_string(senderCount) + ": " + senderName + " @ " + std::to_string((int)getAverageFps()) + " FPS");
+	} else {
+		getWindow()->setTitle("connecting...");
+	}
 
 }
 
