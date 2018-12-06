@@ -14,7 +14,15 @@ class CinderNDIReceiver{
 		void update();
 		std::pair<std::string, long long> getMetadata();
 		std::pair<ci::gl::Texture2dRef, long long> getVideoTexture();
+
+		int getCurrentSenderIndex();
+		std::string getCurrentSenderName();
+		int getNumberOfSendersFound();
+
+		void switchSource(int index);
+
 	private:
+		int findSources();
 		void initConnection(int index);
 
 		int getIndexForSender(std::string name);

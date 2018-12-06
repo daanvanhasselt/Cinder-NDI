@@ -27,6 +27,7 @@ CinderNDIReceiver::CinderNDIReceiver(int index)
 	const NDIlib_source_t* p_sources = nullptr;
 	while( !no_sources ) {
 		mNdiSources = NDIlib_find_get_sources( mNdiFinder, &no_sources, 1000 );
+		no_sources = findSources();
 	}
 
 	currentIndex = index;
@@ -107,6 +108,21 @@ void CinderNDIReceiver::initConnection(int index)
 	}
 }
 
+int CinderNDIReceiver::findSources() {
+	int numberOfSources = 0;
+	const NDIlib_source_t* p_sources = nullptr;
+	mNdiSources = NDIlib_find_get_sources(mNdiFinder, &numberOfSources, 0);
+
+	for (int i = 0; i < numberOfSources; i++) {
+		mNdiSources = NDIlib_find_get_sources(mNdiFinder, &numberOfSources, 1000);
+		if (mNdiSources[i].p_ndi_name && mNdiSources[i].p_ndi_name[0]) {
+			NDIsenderNames.push_back(mNdiSources[i].p_ndi_name);
+		}
+	}
+
+	return numberOfSources;
+}
+
 void CinderNDIReceiver::update()
 {
 	// Check if we have at least one source
@@ -114,15 +130,10 @@ void CinderNDIReceiver::update()
 	const NDIlib_source_t* p_sources = nullptr;
 	mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 0 );
 
-	if( ! numberOfSources ) {
+	if( numberOfSources == 0 ) {
 		mReadyToReceive = false;
 		// Connections might take a while.. Wait for 10secs..
-		for (int i = 0; i < numberOfSources; i++) {
-			mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 1000 );
-			if (mNdiSources[i].p_ndi_name && mNdiSources[i].p_ndi_name[0]) {
-				NDIsenderNames.push_back(mNdiSources[i].p_ndi_name);
-			}
-		}
+		numberOfSources = findSources();
 	}
 	else {
 		// If we are here it means that the source has changed
@@ -184,6 +195,25 @@ void CinderNDIReceiver::update()
 	}
 }
 
+int CinderNDIReceiver::getCurrentSenderIndex() {
+	return currentIndex;
+}
+
+int CinderNDIReceiver::getNumberOfSendersFound() {
+	return NDIsenderNames.size();
+}
+
+void CinderNDIReceiver::switchSource(int index) {
+	initConnection(index);
+}
+
+std::string CinderNDIReceiver::getCurrentSenderName() {
+	if (NDIsenderNames.size() == 0) {
+		return "none";
+	} else {
+		return NDIsenderNames[currentIndex];
+	}
+}
 
 
 std::pair<std::string, long long> CinderNDIReceiver::getMetadata()

@@ -13,6 +13,7 @@ class BasicReceiverApp : public App {
 	BasicReceiverApp();
 	void update() override;
 	void draw() override;
+	void keyDown(KeyEvent event) override;
 
   private:
 	CinderNDIReceiver mReceiver;
@@ -29,7 +30,9 @@ BasicReceiverApp::BasicReceiverApp()
 void BasicReceiverApp::update()
 {
 	mReceiver.update();
-	getWindow()->setTitle( "CinderNDI-Receiver - " + std::to_string( (int) getAverageFps() ) + " FPS" );
+	int senderIndex = mReceiver.getCurrentSenderIndex();
+	std::string senderName = mReceiver.getCurrentSenderName();
+	getWindow()->setTitle( "#" + std::to_string(senderIndex) + " " + senderName + " @ " + std::to_string( (int) getAverageFps() ) + " FPS" );
 
 }
 
@@ -43,6 +46,12 @@ void BasicReceiverApp::draw()
 		gl::draw( tex.first, centeredRect );
 	}
 	CI_LOG_I( " Frame: " << tex.second << ", metadata: " << meta.first << " : " << meta.second );
+}
+
+void BasicReceiverApp::keyDown(KeyEvent event) {
+	if (event.getCode() == KeyEvent::KEY_UP) {
+
+	}
 }
 
 void prepareSettings( BasicReceiverApp::Settings* settings )
