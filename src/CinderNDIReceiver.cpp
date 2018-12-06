@@ -201,7 +201,7 @@ void CinderNDIReceiver::update()
 			// Meta data
 			case NDIlib_frame_type_metadata:
 			{
-				CI_LOG_I( "Meta data received." );
+				//CI_LOG_I( "Meta data received." );
 				mMetadata.first = metadata_frame.p_data;
 				mMetadata.second = metadata_frame.timecode;
 				NDIlib_recv_free_metadata( mNdiReceiver, &metadata_frame );
