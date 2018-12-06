@@ -30,8 +30,8 @@ BasicReceiverApp::BasicReceiverApp()
 
 void BasicReceiverApp::setup() 
 {
-	//mReceiver.setup();
-	mReceiver.setup("kinect-cinder");
+	mReceiver.setup();
+	//mReceiver.setup("kinect-cinder");
 }
 
 void BasicReceiverApp::update()
