@@ -26,7 +26,7 @@ class CinderNDIReceiver{
 
 	private:
 		int findSources();
-		void initConnection(int index, bool waitForPreferredSender = false);
+		void initConnection(int index);
 
 		int getIndexForSender(std::string name);
 
@@ -42,5 +42,6 @@ class CinderNDIReceiver{
 		std::vector<std::string> NDIsenderNames;
 		int currentIndex;
 		std::string preferredSenderName;
+		bool shouldWaitForPreferredSender();
 
 };

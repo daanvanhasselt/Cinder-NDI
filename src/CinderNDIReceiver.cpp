@@ -37,11 +37,12 @@ void CinderNDIReceiver::setup(std::string name) {
 
 	currentIndex = 0;
 	preferredSenderName = name;
-	bool waitForSender = !preferredSenderName.empty();
-	initConnection(currentIndex, waitForSender);
+	if (shouldWaitForPreferredSender()) {
+		CI_LOG_I("waiting for sender with name " << preferredSenderName);
+	}
+	initConnection(currentIndex);
 
 	mNdiInitialized = true;
-
 }
 
 CinderNDIReceiver::~CinderNDIReceiver()
@@ -63,7 +64,8 @@ int CinderNDIReceiver::getIndexForSender(std::string name) {
 
 	if (NDIsenderNames.size() > 0) {
 		for (int i = 0; i<(int)NDIsenderNames.size(); i++) {
-			if (name == NDIsenderNames.at(i)) {
+			std::string test = NDIsenderNames.at(i);
+			if (test.find(name) != std::string::npos) {
 				return i;
 			}
 		}
@@ -71,8 +73,11 @@ int CinderNDIReceiver::getIndexForSender(std::string name) {
 	return -1;
 }
 
+bool CinderNDIReceiver::shouldWaitForPreferredSender() {
+	return !preferredSenderName.empty();
+}
 
-void CinderNDIReceiver::initConnection(int index, bool waitForPreferredSender)
+void CinderNDIReceiver::initConnection(int index)
 {
 	if (index != currentIndex) {
 		currentIndex = index;
@@ -98,7 +103,7 @@ void CinderNDIReceiver::initConnection(int index, bool waitForPreferredSender)
 		const NDIlib_tally_t tally_state = { true, false };
 		NDIlib_recv_set_tally( mNdiReceiver, &tally_state);
 
-		if (waitForPreferredSender) {
+		if (shouldWaitForPreferredSender() && !mReady) {
 			int preferredIndex = getIndexForSender(preferredSenderName);
 			if (preferredIndex > -1) {
 				mReady = true;
@@ -148,15 +153,13 @@ void CinderNDIReceiver::update()
 		mReady = false;
 		// Connections might take a while.. Wait for 10secs..
 		numberOfSources = findSources();
-	}
-	else {
+	} else {
 		// If we are here it means that the source has changed
 		// so we need to rebuild our receiver.
 		if( ! mReady ) {
 			if( mNdiReceiver ) NDIlib_recv_destroy( mNdiReceiver );
 			initConnection(currentIndex);
 		}
-
 	}
 
 	if( mReady ) {

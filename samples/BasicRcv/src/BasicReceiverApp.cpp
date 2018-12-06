@@ -30,7 +30,8 @@ BasicReceiverApp::BasicReceiverApp()
 
 void BasicReceiverApp::setup() 
 {
-	mReceiver.setup();
+	//mReceiver.setup();
+	mReceiver.setup("kinect-cinder");
 }
 
 void BasicReceiverApp::update()
@@ -49,14 +50,18 @@ void BasicReceiverApp::update()
 
 void BasicReceiverApp::draw()
 {
-	gl::clear( ColorA::black() );
-	auto meta = mReceiver.getMetadata();
-	auto tex = mReceiver.getVideoTexture();
-	if( tex.first ) {
-		Rectf centeredRect = Rectf( tex.first->getBounds() ).getCenteredFit( getWindowBounds(), true );
-		gl::draw( tex.first, centeredRect );
+	if (mReceiver.isReady()) {
+		gl::clear(ColorA::black());
+		auto meta = mReceiver.getMetadata();
+		auto tex = mReceiver.getVideoTexture();
+		if (tex.first) {
+			Rectf centeredRect = Rectf(tex.first->getBounds()).getCenteredFit(getWindowBounds(), true);
+			gl::draw(tex.first, centeredRect);
+		}
+	} else {
+		gl::clear(ColorAf(0, 0, 1));
 	}
-	CI_LOG_I( " Frame: " << tex.second << ", metadata: " << meta.first << " : " << meta.second );
+	//CI_LOG_I( " Frame: " << tex.second << ", metadata: " << meta.first << " : " << meta.second );
 }
 
 void BasicReceiverApp::keyDown(KeyEvent event) {
