@@ -10,14 +10,28 @@ class CinderNDIReceiver{
 		CinderNDIReceiver();
 		~CinderNDIReceiver();
 
+		void setup(std::string preferredSender = "");
+
+		bool isReady();
+
 		void update();
 		std::pair<std::string, long long> getMetadata();
 		std::pair<ci::gl::Texture2dRef, long long> getVideoTexture();
+
+		int getCurrentSenderIndex();
+		std::string getCurrentSenderName();
+		int getNumberOfSendersFound();
+
+		void switchSource(int index);
+
 	private:
-		void initConnection();
-	private:
-		bool mNdiInitialized = false;
-		bool mReadyToReceive = false;
+		int findSources();
+		void initConnection(int index);
+
+		int getIndexForSender(std::string name);
+
+		bool mNdiInitialized;
+		bool mReady;
 		std::pair<ci::gl::Texture2dRef, long long> mVideoTexture;
 		bool mNewFrame = false;
 		bool getIsNewFrame();
@@ -26,5 +40,10 @@ class CinderNDIReceiver{
 		NDIlib_recv_instance_t mNdiReceiver;
 		NDIlib_find_instance_t mNdiFinder;
 		const NDIlib_source_t* mNdiSources = nullptr; // Owned by NDI.
+
+		std::vector<std::string> NDIsenderNames;
+		int currentIndex;
+		std::string preferredSenderName;
+		bool shouldWaitForPreferredSender();
 
 };
