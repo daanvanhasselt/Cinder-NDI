@@ -171,7 +171,7 @@ void CinderNDIReceiver::update()
 				// No data
 			case NDIlib_frame_type_none:
 			{
-				CI_LOG_I( "No data received. " );
+				//CI_LOG_I( "No data received. " );
 				break;
 			}
 
