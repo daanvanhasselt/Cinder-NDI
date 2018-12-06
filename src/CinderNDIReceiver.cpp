@@ -29,7 +29,7 @@ CinderNDIReceiver::CinderNDIReceiver()
 		mNdiSources = NDIlib_find_get_sources( mNdiFinder, &no_sources, 1000 );
 	}
 
-	initConnection();
+	initConnection("dummy");
 
 	mNdiInitialized = true;
 }
@@ -93,7 +93,7 @@ void CinderNDIReceiver::update()
 		// so we need to rebuild our receiver.
 		if( ! mReadyToReceive ) {
 			if( mNdiReceiver ) NDIlib_recv_destroy( mNdiReceiver );
-			initConnection();
+			initConnection("dummy");
 		}
 
 	}
