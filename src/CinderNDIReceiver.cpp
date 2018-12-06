@@ -110,6 +110,7 @@ void CinderNDIReceiver::initConnection(int index)
 
 int CinderNDIReceiver::findSources() {
 	int numberOfSources = 0;
+	NDIsenderNames.clear();
 	const NDIlib_source_t* p_sources = nullptr;
 	mNdiSources = NDIlib_find_get_sources(mNdiFinder, &numberOfSources, 0);
 
@@ -130,7 +131,7 @@ void CinderNDIReceiver::update()
 	const NDIlib_source_t* p_sources = nullptr;
 	mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 0 );
 
-	if( numberOfSources == 0 ) {
+	if( numberOfSources == 0 || numberOfSources != getNumberOfSendersFound() ) {
 		mReadyToReceive = false;
 		// Connections might take a while.. Wait for 10secs..
 		numberOfSources = findSources();

@@ -31,8 +31,9 @@ void BasicReceiverApp::update()
 {
 	mReceiver.update();
 	int senderIndex = mReceiver.getCurrentSenderIndex();
+	int senderCount = mReceiver.getNumberOfSendersFound();
 	std::string senderName = mReceiver.getCurrentSenderName();
-	getWindow()->setTitle( "#" + std::to_string(senderIndex) + " " + senderName + " @ " + std::to_string( (int) getAverageFps() ) + " FPS" );
+	getWindow()->setTitle( "#" + std::to_string(senderIndex) + "/" + std::to_string(senderCount) + ": " + senderName + " @ " + std::to_string( (int) getAverageFps() ) + " FPS" );
 
 }
 
@@ -50,7 +51,16 @@ void BasicReceiverApp::draw()
 
 void BasicReceiverApp::keyDown(KeyEvent event) {
 	if (event.getCode() == KeyEvent::KEY_UP) {
-
+		int currentIndex = mReceiver.getCurrentSenderIndex();
+		if (currentIndex < mReceiver.getNumberOfSendersFound() -1) {
+			mReceiver.switchSource(currentIndex + 1);
+		}
+	}
+	if (event.getCode() == KeyEvent::KEY_DOWN) {
+		int currentIndex = mReceiver.getCurrentSenderIndex();
+		if (currentIndex >= 1) {
+			mReceiver.switchSource(currentIndex - 1);
+		}
 	}
 }
 
