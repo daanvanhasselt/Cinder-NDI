@@ -11,6 +11,7 @@ using namespace ci::app;
 class BasicReceiverApp : public App {
   public:
 	BasicReceiverApp();
+	void setup() override;
 	void update() override;
 	void draw() override;
 	void keyDown(KeyEvent event) override;
@@ -25,6 +26,11 @@ BasicReceiverApp::BasicReceiverApp()
 	: mReceiver{}
 {
 
+}
+
+void BasicReceiverApp::setup() 
+{
+	mReceiver.setup();
 }
 
 void BasicReceiverApp::update()
