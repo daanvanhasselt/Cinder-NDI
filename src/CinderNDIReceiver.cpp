@@ -47,7 +47,11 @@ CinderNDIReceiver::~CinderNDIReceiver()
 	mNdiInitialized = false;
 }
 
-void CinderNDIReceiver::initConnection()
+void setup(std::string streamName) {
+
+}
+
+void CinderNDIReceiver::initConnection(std::string streamName)
 {
 	if( mNdiSources ) {
 		NDIlib_recv_create_t NDI_recv_create_desc = 

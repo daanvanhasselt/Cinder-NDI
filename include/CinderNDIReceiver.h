@@ -10,11 +10,13 @@ class CinderNDIReceiver{
 		CinderNDIReceiver();
 		~CinderNDIReceiver();
 
+		void setup(std::string streamName);
+
 		void update();
 		std::pair<std::string, long long> getMetadata();
 		std::pair<ci::gl::Texture2dRef, long long> getVideoTexture();
 	private:
-		void initConnection();
+		void initConnection(string streamName);
 	private:
 		bool mNdiInitialized = false;
 		bool mReadyToReceive = false;
