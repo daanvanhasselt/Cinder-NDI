@@ -55,6 +55,8 @@ void CinderNDISender::sendSurface( ci::Surface& surface, long long timecode, boo
 		NDI_video_frame.yres = (unsigned int)( surface.getHeight() );
 		NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRX;
 		NDI_video_frame.p_data = (uint8_t*)(surface.getData());
+		NDI_video_frame.frame_rate_N = mFramerateNumerator;
+		NDI_video_frame.frame_rate_D = mFramerateDenominator;
 		
 		if( async ) {
 			NDIlib_send_send_video_async_v2( mNdiSender, &NDI_video_frame );
