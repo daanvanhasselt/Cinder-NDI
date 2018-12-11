@@ -28,11 +28,13 @@ CinderNDIReceiver::CinderNDIReceiver()
 }
 
 void CinderNDIReceiver::setup(std::string name) {
-	int no_sources = 0;
+	uint32_t no_sources = 0;
 	const NDIlib_source_t* p_sources = nullptr;
-	while (!no_sources) {
-		mNdiSources = NDIlib_find_get_sources(mNdiFinder, &no_sources, 1000);
-		no_sources = findSources();
+	while (!no_sources) 	
+	{	// Wait until the sources on the network have changed
+		CI_LOG_D("NDI receiver: Looking for sources ...");
+		NDIlib_find_wait_for_sources(mNdiFinder, 1000/* One second */);
+		p_sources = NDIlib_find_get_current_sources(mNdiFinder, &no_sources);
 	}
 
 	currentIndex = 0;
@@ -83,22 +85,20 @@ void CinderNDIReceiver::initConnection(int index)
 		currentIndex = index;
 	}
 	if( mNdiSources ) {
-		
-		NDIlib_recv_create_t NDI_recv_create_desc = 
-		{
-			mNdiSources[index],
-			NDIlib_recv_color_format_e::NDIlib_recv_color_format_e_BGRX_BGRA,
-			NDIlib_recv_bandwidth_highest,
-			TRUE
-		};
 
-		mNdiReceiver = NDIlib_recv_create2( &NDI_recv_create_desc );
-		if( ! mNdiReceiver ) {
-			CI_LOG_E( "Failed to create NDI receiver!" );
-		} else {
+		NDIlib_recv_create_v3_t NDI_recv_create_desc;
+		NDI_recv_create_desc.source_to_connect_to = mNdiSources[index];
+		NDI_recv_create_desc.color_format = NDIlib_recv_color_format_BGRX_BGRA;
+		NDI_recv_create_desc.bandwidth = NDIlib_recv_bandwidth_highest;
+		NDI_recv_create_desc.allow_video_fields = true;
+
+		mNdiReceiver = NDIlib_recv_create_v3();
+		if(!mNdiReceiver) {
+			CI_LOG_E("Failed to create NDI receiver!");
+		}
+		else {
 			CI_LOG_I("Connected to sender at index #" << std::to_string(index) << " OK");
 		}
-
 
 		const NDIlib_tally_t tally_state = { true, false };
 		NDIlib_recv_set_tally( mNdiReceiver, &tally_state);
@@ -118,7 +118,7 @@ void CinderNDIReceiver::initConnection(int index)
 }
 
 int CinderNDIReceiver::findSources() {
-	int numberOfSources = 0;
+	uint32_t numberOfSources = 0;
 	NDIsenderNames.clear();
 	const NDIlib_source_t* p_sources = nullptr;
 	mNdiSources = NDIlib_find_get_sources(mNdiFinder, &numberOfSources, 0);
@@ -145,7 +145,7 @@ void CinderNDIReceiver::update()
 	}
 
 	// Check if we have at least one source
-	int numberOfSources = 0;
+	uint32_t numberOfSources = 0;
 	const NDIlib_source_t* p_sources = nullptr;
 	mNdiSources = NDIlib_find_get_sources( mNdiFinder, &numberOfSources, 0 );
 
