@@ -49,6 +49,10 @@ void CinderNDIReceiver::setup(std::string name) {
 
 CinderNDIReceiver::~CinderNDIReceiver()
 {
+	if (!mNdiInitialized) {
+		return;
+	}
+
 	if( mNdiFinder ) {
 		NDIlib_find_destroy( mNdiFinder );	
 	}
