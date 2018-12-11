@@ -1,11 +1,13 @@
 #pragma once
 
-// NOTE : The following license applies to this file ONLY and not to the SDK as a whole. Please review the SDK documentation for
-// the description of the full license terms.
+// NOTE : The following MIT license applies to this file ONLY and not to the SDK as a whole. Please review the SDK documentation 
+// for the description of the full license terms, which are also provided in the file "NDI License Agreement.pdf" within the SDK or 
+// online at http://new.tk/ndisdk_license/. Your use of any part of this SDK is acknowledgment that you agree to the SDK license 
+// terms. The full NDI SDK may be downloaded at https://www.newtek.com/ndi/sdk/
 //
 //***********************************************************************************************************************************************
 // 
-// Copyright(c) 2016 NewTek, inc
+// Copyright(c) 2014-2018 NewTek, inc
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
 // files(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, 
@@ -42,23 +44,28 @@ typedef struct NDIlib_send_create_t
 	// of separate threads then having both clocked can be useful.
 	bool clock_video, clock_audio;
 
-}	NDIlib_send_create_t;
+#if NDILIB_CPP_DEFAULT_CONSTRUCTORS
+	NDIlib_send_create_t(const char* p_ndi_name_ = NULL, const char* p_groups_ = NULL, bool clock_video_ = true, bool clock_audio_ = true);
+#endif // NDILIB_CPP_DEFAULT_CONSTRUCTORS
 
-// Create a new sender instance. This will return NULL if it fails.
+} NDIlib_send_create_t;
+
+// Create a new sender instance. This will return NULL if it fails. If you specify leave p_create_settings null then 
+// the sender will be created with default settings. 
 PROCESSINGNDILIB_API
-NDIlib_send_instance_t NDIlib_send_create(const NDIlib_send_create_t* p_create_settings);
+NDIlib_send_instance_t NDIlib_send_create(const NDIlib_send_create_t* p_create_settings NDILIB_CPP_DEFAULT_VALUE(NULL) );
 
 // This will destroy an existing finder instance.
 PROCESSINGNDILIB_API
 void NDIlib_send_destroy(NDIlib_send_instance_t p_instance);
 
 // This will add a video frame
-PROCESSINGNDILIB_API
-void NDIlib_send_send_video(NDIlib_send_instance_t p_instance, const NDIlib_video_frame_t* p_video_data);
+PROCESSINGNDILIB_API 
+void NDIlib_send_send_video_v2(NDIlib_send_instance_t p_instance, const NDIlib_video_frame_v2_t* p_video_data);
 
 // This will add a video frame and will return immediately, having scheduled the frame to be displayed. 
 // All processing and sending of the video will occur asynchronously. The memory accessed by NDIlib_video_frame_t 
-// cannot be freed or re-used by the caller until a synchronizing event has occured. In general the API is better
+// cannot be freed or re-used by the caller until a synchronizing event has occurred. In general the API is better
 // able to take advantage of asynchronous processing than you might be able to by simple having a separate thread
 // to submit frames. 
 //
@@ -66,16 +73,16 @@ void NDIlib_send_send_video(NDIlib_send_instance_t p_instance, const NDIlib_vide
 // and network sending to all be done on separate threads from your main rendering thread. 
 //
 // Synchronozing events are :
-//		- a call to NDIlib_send_send_video
-//		- a call to NDIlib_send_send_video_async with another frame to be sent
-//		- a call to NDIlib_send_send_video with p_video_data=NULL
-//		- a call to NDIlib_send_destroy
+// - a call to NDIlib_send_send_video
+// - a call to NDIlib_send_send_video_async with another frame to be sent
+// - a call to NDIlib_send_send_video with p_video_data=NULL
+// - a call to NDIlib_send_destroy
 PROCESSINGNDILIB_API
-void NDIlib_send_send_video_async(NDIlib_send_instance_t p_instance, const NDIlib_video_frame_t* p_video_data);
+void NDIlib_send_send_video_async_v2(NDIlib_send_instance_t p_instance, const NDIlib_video_frame_v2_t* p_video_data);
 
 // This will add an audio frame
 PROCESSINGNDILIB_API
-void NDIlib_send_send_audio(NDIlib_send_instance_t p_instance, const NDIlib_audio_frame_t* p_audio_data);
+void NDIlib_send_send_audio_v2(NDIlib_send_instance_t p_instance, const NDIlib_audio_frame_v2_t* p_audio_data);
 
 // This will add a metadata frame
 PROCESSINGNDILIB_API
