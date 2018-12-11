@@ -49,28 +49,19 @@ void CinderNDISender::sendSurface( ci::Surface& surface, long long timecode, boo
 			CI_LOG_I( "Received meta-data : " << metadata_desc.p_data );
 		}*/
 
-		NDIlib_tally_t NDI_tally;
-		NDIlib_send_get_tally( mNdiSender, &NDI_tally, 0 );
 
-		const NDIlib_video_frame_t NDI_video_frame = {
-			(unsigned int)( surface.getWidth() ),
-			(unsigned int)( surface.getHeight() ),
-			NDIlib_FourCC_type_BGRA,
-			mFramerateNumerator, mFramerateDenominator,
-			(float)surface.getWidth()/(float)surface.getHeight(),
-			NDIlib_frame_format_type_e::NDIlib_frame_format_type_progressive,
-			timecode,
-			(uint8_t *)(surface.getData()),
-			(int)( surface.getRowBytes() )
-		};
-
+		NDIlib_video_frame_v2_t NDI_video_frame;
+		NDI_video_frame.xres = (unsigned int)( surface.getWidth() );
+		NDI_video_frame.yres = (unsigned int)( surface.getHeight() );
+		NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRX;
+		NDI_video_frame.p_data = (uint8_t*)(surface.getData());
+		
 		if( async ) {
-			NDIlib_send_send_video_async( mNdiSender, &NDI_video_frame );
+			NDIlib_send_send_video_async_v2( mNdiSender, &NDI_video_frame );
 		}
 		else {
-			NDIlib_send_send_video( mNdiSender, &NDI_video_frame );
+			NDIlib_send_send_video_v2( mNdiSender, &NDI_video_frame );
 		}
-
 		//if( timecode % 25 == 0 )
 		//	CI_LOG_I( ( NDI_tally.on_program ? "PGM " : "" ) << " " << ( NDI_tally.on_preview ? "PVW " : "" ) );
 	}
@@ -95,7 +86,7 @@ void CinderNDISender::sendMetadata( const ci::XmlTree& xmlTree, long long timeco
 
 	if( NDIlib_send_get_no_connections( mNdiSender, 0 ) ) {
 		const NDIlib_metadata_frame_t NDI_metadata = {
-			(unsigned int)(str.size()),
+			(int)(str.size()),
 			timecode,
 			const_cast<CHAR*>(str.c_str())
 		};
