@@ -3,6 +3,7 @@
 #include <memory>
 #include <windows.h>
 #include <Processing.NDI.Lib.h>
+#include <thread>
 #include "cinder/gl/Texture.h"
 
 class CinderNDIReceiver{
@@ -25,7 +26,6 @@ class CinderNDIReceiver{
 		void switchSource(int index);
 
 	private:
-		int findSources();
 		void initConnection(int index);
 
 		int getIndexForSender(std::string name);
@@ -41,9 +41,12 @@ class CinderNDIReceiver{
 		NDIlib_find_instance_t mNdiFinder;
 		const NDIlib_source_t* mNdiSources = nullptr; // Owned by NDI.
 
-		std::vector<std::string> NDIsenderNames;
-		int currentIndex;
-		std::string preferredSenderName;
+		std::vector<std::string> mNDIsenderNames;
+		int mCurrentIndex;
+		std::string mPreferredSenderName;
 		bool shouldWaitForPreferredSender();
 
+		std::shared_ptr<std::thread> mSourceFindingThread;
+		bool mQuitSourceFindingThread;
+		void threadedSourceFind();
 };
