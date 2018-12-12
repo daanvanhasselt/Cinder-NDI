@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <Processing.NDI.Lib.h>
 #include <thread>
+#include <atomic>
 #include "cinder/gl/Texture.h"
 
 class CinderNDIReceiver{
@@ -30,8 +31,9 @@ class CinderNDIReceiver{
 
 		int getIndexForSender(std::string name);
 
-		bool mNdiInitialized;
-		bool mReady;
+		std::atomic_bool mNdiInitialized;
+		std::atomic_bool mReady;
+		std::atomic_bool mConnecting;
 		std::pair<ci::gl::Texture2dRef, long long> mVideoTexture;
 		bool mNewFrame = false;
 		bool getIsNewFrame();
@@ -42,11 +44,13 @@ class CinderNDIReceiver{
 		const NDIlib_source_t* mNdiSources = nullptr; // Owned by NDI.
 
 		std::vector<std::string> mNDIsenderNames;
-		int mCurrentIndex;
+		std::atomic_int mCurrentIndex;
 		std::string mPreferredSenderName;
 		bool shouldWaitForPreferredSender();
 
 		std::shared_ptr<std::thread> mSourceFindingThread;
 		bool mQuitSourceFindingThread;
 		void threadedSourceFind();
+
+		bool mVerbose;
 };

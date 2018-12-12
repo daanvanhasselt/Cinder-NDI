@@ -6,9 +6,7 @@
 #include "cinder/Surface.h"
 #include <Processing.NDI.Recv.h>
 
-CinderNDIReceiver::CinderNDIReceiver()
-	: mNdiSources{ nullptr }
-{
+CinderNDIReceiver::CinderNDIReceiver() : mNdiSources{ nullptr } {
 	if( ! NDIlib_is_supported_CPU() ) {
 		CI_LOG_E( "Failed to initialize NDI because of unsupported CPU!" );
 	}
@@ -25,6 +23,7 @@ CinderNDIReceiver::CinderNDIReceiver()
 	mCurrentIndex = -1;
 	mNdiInitialized = true;
 	mReady = false;
+	mConnecting = false;
 	mQuitSourceFindingThread = false;
 }
 
@@ -49,9 +48,16 @@ CinderNDIReceiver::~CinderNDIReceiver()
 }
 
 void CinderNDIReceiver::setup(std::string name) {
+	// only the first instance will be verbose
+	static bool firstInstance = true;
+	mVerbose = firstInstance;
+	if (firstInstance) {
+		firstInstance = false;
+	}
+
 	mPreferredSenderName = name;
 	if (shouldWaitForPreferredSender()) {
-		CI_LOG_I("waiting for sender with name " << mPreferredSenderName);
+		CI_LOG_I("Started NDI input stream for sender with name " << mPreferredSenderName);
 	}
 
 	mSourceFindingThread = std::unique_ptr<std::thread>(new std::thread(&CinderNDIReceiver::threadedSourceFind, this));
@@ -81,9 +87,9 @@ bool CinderNDIReceiver::shouldWaitForPreferredSender() {
 	return !mPreferredSenderName.empty();
 }
 
-void CinderNDIReceiver::initConnection(int index)
-{
+void CinderNDIReceiver::initConnection(int index) {
 	mReady = false;
+	mConnecting = true;
 
 	if (index != mCurrentIndex) {
 		mCurrentIndex = index;
@@ -103,6 +109,7 @@ void CinderNDIReceiver::initConnection(int index)
 		mNdiReceiver = NDIlib_recv_create_v3(&NDI_recv_create_desc);
 		if(!mNdiReceiver) {
 			CI_LOG_E("Failed to create NDI receiver!");
+			mConnecting = false;
 			return;
 		}
 		else {
@@ -113,17 +120,22 @@ void CinderNDIReceiver::initConnection(int index)
 		NDIlib_recv_set_tally( mNdiReceiver, &tally_state);
 
 		mReady = true;
+		mConnecting = false;
 	}
 }
 
 void CinderNDIReceiver::threadedSourceFind() {
 	while (!mQuitSourceFindingThread) {
+		if (mConnecting) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			continue;
+		}
 		// check if sources have changed (blocking for maximum of 1 second)
 		if (!NDIlib_find_wait_for_sources(mNdiFinder, 1000)) {
 			continue;
 		}
 		else {
-			CI_LOG_I("NDI sources changed");
+			if(mVerbose) CI_LOG_I("NDI sources changed");
 		}
 
 		// get sources list
@@ -136,7 +148,7 @@ void CinderNDIReceiver::threadedSourceFind() {
 		}
 		
 		if (nSources == 0) {
-			CI_LOG_I("No NDI sources found - looking for " << (shouldWaitForPreferredSender() ? mPreferredSenderName : "any stream"));
+			if (mVerbose) CI_LOG_I("No NDI sources found - looking for " << (shouldWaitForPreferredSender() ? mPreferredSenderName : "any stream"));
 			continue;
 		}
 
@@ -147,9 +159,9 @@ void CinderNDIReceiver::threadedSourceFind() {
 			mNDIsenderNames.push_back(mNdiSources[i].p_ndi_name);
 		}
 
-		CI_LOG_I("Found NDI sources:");
+		if (mVerbose) CI_LOG_I("Found NDI sources:");
 		for (auto name : mNDIsenderNames) {
-			CI_LOG_I("\t" << name);
+			if (mVerbose) CI_LOG_I("\t" << name);
 		}
 
 		// if we have a preferred sender name, try to find it
@@ -162,7 +174,9 @@ void CinderNDIReceiver::threadedSourceFind() {
 				}
 			}
 
-			CI_LOG_I("Did not find preferred NDI source '" << mPreferredSenderName << "'. Found " << nSources << " other sources");
+			if (!mReady) {
+				CI_LOG_I("Did not find preferred NDI source '" << mPreferredSenderName << "'. Found " << nSources << " other sources");
+			}
 		}
 		else {
 			CI_LOG_I("No NDI source preference, connecting to '" << mNDIsenderNames[0] << "'");
