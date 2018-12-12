@@ -120,10 +120,10 @@ void CinderNDIReceiver::threadedSourceFind() {
 	while (!mQuitSourceFindingThread) {
 		// check if sources have changed (blocking for maximum of 1 second)
 		if (!NDIlib_find_wait_for_sources(mNdiFinder, 1000)) {
-			if (!mReady) {
-				CI_LOG_I("No NDI sources found");
-			}
 			continue;
+		}
+		else {
+			CI_LOG_I("NDI sources changed");
 		}
 
 		// get sources list
@@ -136,7 +136,7 @@ void CinderNDIReceiver::threadedSourceFind() {
 		}
 		
 		if (nSources == 0) {
-			CI_LOG_I("No NDI sources found");
+			CI_LOG_I("No NDI sources found - looking for " << (shouldWaitForPreferredSender() ? mPreferredSenderName : "any stream"));
 			continue;
 		}
 
@@ -147,11 +147,16 @@ void CinderNDIReceiver::threadedSourceFind() {
 			mNDIsenderNames.push_back(mNdiSources[i].p_ndi_name);
 		}
 
+		CI_LOG_I("Found NDI sources:");
+		for (auto name : mNDIsenderNames) {
+			CI_LOG_I("\t" << name);
+		}
+
 		// if we have a preferred sender name, try to find it
 		if (shouldWaitForPreferredSender()) {
 			for (uint32_t i = 0; i < nSources; i++) {
-				if (mNDIsenderNames[i] == mPreferredSenderName) {
-					CI_LOG_I("Found preferred NDI source '" << mPreferredSenderName << "'");
+				if (mNDIsenderNames[i].find(mPreferredSenderName) != std::string::npos) {
+					CI_LOG_I("Found preferred NDI source '" << mPreferredSenderName << "', full source name: '" << mNDIsenderNames[i] << "'");
 					initConnection(i);
 					continue;
 				}
@@ -199,7 +204,7 @@ void CinderNDIReceiver::update()
 			//CI_LOG_I( "Video data received with width: " << video_frame.xres << " and height: " << video_frame.yres );
 			auto surface = ci::Surface::create( video_frame.p_data, video_frame.xres, video_frame.yres, video_frame.line_stride_in_bytes, ci::SurfaceChannelOrder::BGRA );
 			mVideoTexture.first = ci::gl::Texture::create( *surface );
-			mVideoTexture.first->setTopDown( true );
+			mVideoTexture.first->setTopDown( false );
 			mVideoTexture.second = video_frame.timecode;
 			NDIlib_recv_free_video( mNdiReceiver, &video_frame );
 			break;

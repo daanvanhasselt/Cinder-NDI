@@ -21,6 +21,8 @@ class CinderNDISender{
 
 		void sendMetadata( const ci::XmlTree& metadataString );
 		void sendMetadata( const ci::XmlTree& metadataString, long long timecode );
+
+		std::string getName() { return mName; }
 	private:
 		int						mFramerateNumerator, mFramerateDenominator;
 		NDIlib_send_instance_t	mNdiSender;
