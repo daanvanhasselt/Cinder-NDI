@@ -90,7 +90,7 @@ void CinderNDISender::sendMetadata( const ci::XmlTree& xmlTree, long long timeco
 		const NDIlib_metadata_frame_t NDI_metadata = {
 			(int)(str.size()),
 			timecode,
-			const_cast<CHAR*>(str.c_str())
+			const_cast<char*>(str.c_str())
 		};
 		NDIlib_send_send_metadata( mNdiSender, &NDI_metadata );
 	}

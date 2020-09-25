@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <windows.h>
 #include <string>
 #include "cinder/gl/Texture.h"
 #include "cinder/Xml.h"
